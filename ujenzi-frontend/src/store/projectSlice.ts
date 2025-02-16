@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { getProjects, createProject, getProjectById, updateProject } from '../services/api';
+import { getProjects, createProject, getProjectById, updateProject, addJournalEntry, addMilestone } from '../services/api';
 import { ProjectState, Project } from '../types';
 
 const initialState: ProjectState = {
@@ -40,6 +40,22 @@ export const updateExistingProject = createAsyncThunk(
   async ({ id, projectData }: { id: string; projectData: Partial<Project> }) => {
     const response = await updateProject(id, projectData);
     return response;
+  }
+);
+
+export const addJournalEntryToProject = createAsyncThunk(
+  'projects/addJournalEntry',
+  async ({ projectId, entry }: { projectId: string; entry: any }) => {
+    const response = await addJournalEntry(projectId, entry);
+    return { projectId, entry: response };
+  }
+);
+
+export const addMilestoneToProject = createAsyncThunk(
+  'projects/addMilestone',
+  async ({ projectId, milestone }: { projectId: string; milestone: any }) => {
+    const response = await addMilestone(projectId, milestone);
+    return { projectId, milestone: response };
   }
 );
 
@@ -109,6 +125,34 @@ const projectSlice = createSlice({
       .addCase(updateExistingProject.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.error.message || 'Failed to update project';
+      })
+      .addCase(addJournalEntryToProject.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(addJournalEntryToProject.fulfilled, (state, action) => {
+        state.isLoading = false;
+        if (state.selectedProject?._id === action.payload.projectId) {
+          state.selectedProject.journalEntries.push(action.payload.entry);
+        }
+      })
+      .addCase(addJournalEntryToProject.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.error.message || 'Failed to add journal entry';
+      })
+      .addCase(addMilestoneToProject.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(addMilestoneToProject.fulfilled, (state, action) => {
+        state.isLoading = false;
+        if (state.selectedProject?._id === action.payload.projectId) {
+          state.selectedProject.milestones.push(action.payload.milestone);
+        }
+      })
+      .addCase(addMilestoneToProject.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.error.message || 'Failed to add milestone';
       });
   },
 });

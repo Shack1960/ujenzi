@@ -1,4 +1,4 @@
-import axios from 'axios';
+ import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
@@ -58,6 +58,16 @@ export const getProjectById = async (id: string) => {
 
 export const updateProject = async (id: string, projectData: any) => {
   const response = await api.put(`/projects/${id}`, projectData);
+  return response.data;
+};
+
+export const addMilestone = async (projectId: string, milestoneData: any) => {
+  const response = await api.post(`/projects/${projectId}/milestones`, milestoneData);
+  return response.data;
+};
+
+export const addJournalEntry = async (projectId: string, entryData: any) => {
+  const response = await api.post(`/projects/${projectId}/journal`, entryData);
   return response.data;
 };
 
